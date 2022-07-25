@@ -1,9 +1,14 @@
 ﻿  main.cpp
-C:\Users\LpHiX\source\repos\BallTracking\main.cpp(42,36): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\LpHiX\source\repos\BallTracking\main.cpp(43,46): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(85,44): warning C4305: 'argument': truncation from 'double' to 'const float'
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(85,87): warning C4305: 'argument': truncation from 'double' to 'const float'
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(86,42): warning C4305: 'argument': truncation from 'double' to 'const float'
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(86,79): warning C4305: 'argument': truncation from 'double' to 'const float'
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(86,108): warning C4305: 'argument': truncation from 'double' to 'const float'
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(86,145): warning C4305: 'argument': truncation from 'double' to 'const float'
+C:\Users\LpHiX\source\repos\BallTracking\main.cpp(188,36): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   Generating code
-  1 of 154 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+  1 of 220 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   BallTracking.vcxproj -> C:\Users\LpHiX\source\repos\BallTracking\x64\Release\BallTracking.exe
