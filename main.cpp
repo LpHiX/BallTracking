@@ -2,12 +2,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
-
-cv::VideoCapture cap(0);
-cv::Mat3b img;
-cv::Mat threshold_img;
-std::vector<std::vector<cv::Point>> contours;
-std::vector<cv::Vec4i> hierarchy;
+#include <WS2tcpip.h>
+#pragma comment (lib, "ws2_32.lib")
 
 struct Vector3
 {
@@ -50,6 +46,10 @@ struct Vector3
 	{
 		return Multiply(other);
 	}
+	float MagnitudeSquared() const
+	{
+		return x * x + y * y + z * z;
+	}
 };
 
 std::ostream& operator<<(std::ostream& stream, const Vector3& other)
@@ -58,6 +58,12 @@ std::ostream& operator<<(std::ostream& stream, const Vector3& other)
 	return stream;
 }
 
+cv::VideoCapture cap(0);
+cv::Mat3b img;
+cv::Mat threshold_img;
+std::vector<std::vector<cv::Point>> contours;
+std::vector<cv::Vec4i> hierarchy;
+
 const int max = 255;
 int low_r = 0, low_g = 90, low_b = 144;
 int max_r = 113, max_g = 255, max_b = 255;
@@ -65,13 +71,6 @@ int low_rs = 0, low_gs = 90, low_bs = 144;
 int max_rs = 113, max_gs = 255, max_bs = 255;
 
 int cal_value = 100;
-
-static void on_low_r(int value, void*) {low_r = value;}
-static void on_max_r(int value, void*) {max_r = value;}
-static void on_low_g(int value, void*) {low_g = value;}
-static void on_max_g(int value, void*) {max_g = value;}
-static void on_low_b(int value, void*) {low_b = value;}
-static void on_max_b(int value, void*) {max_b = value;}
 
 cv::Mat3b canvas(180, 300, cv::Vec3b(0, 255, 0));
 cv::Rect cal_x(0, 0, 150, 60);
@@ -82,8 +81,17 @@ cv::Rect cal_debug(150, 0, 150, 60);
 
 float distance;
 Vector3 pos_raw, pos_centered, pos_out;
-Vector3 pos_offset(273.558, 184.22, 926.868), pos_scale(0.489396, -0.544959, -0.292988);
-Vector3 rawpos_0(273.558, 184.22, 926.868), rawpos_x(468.833, 183.278, 969.782), rawpos_y(283.5, 0, 1538.44), rawpos_z(252.141, 230.318, 646.409);
+Vector3 pos_offset(289.929, 405.357, 993.672), pos_scale(0.594985, -0.614035, -0.333545);
+Vector3 rawpos_0(289.929, 405.357, 993.672), rawpos_x(458, 403.5, 886.477), rawpos_y(307.342, 242.5, 1034.03), rawpos_z(273.734, 404.633, 693.862);
+
+bool online = true;
+
+static void on_low_r(int value, void*) { low_r = value; }
+static void on_max_r(int value, void*) { max_r = value; }
+static void on_low_g(int value, void*) { low_g = value; }
+static void on_max_g(int value, void*) { max_g = value; }
+static void on_low_b(int value, void*) { low_b = value; }
+static void on_max_b(int value, void*) { max_b = value; }
 
 void mouseClickFunc(int event, int x, int y, int flags, void* userdata)
 {
@@ -168,6 +176,19 @@ void setupControlPanel()
 int main()
 {
 	setupControlPanel();
+	WSADATA data;
+	WORD version = MAKEWORD(2, 2);
+	int wsOk = WSAStartup(version, &data);
+	if (wsOk != 0)
+	{
+		std::cout << "Winsock Startup failed: " << wsOk << ", starting offline mode." << std::endl;
+		online = false;
+	}
+	sockaddr_in server;
+	server.sin_family = AF_INET;
+	server.sin_port = htons(54000);
+	inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
+	SOCKET out = socket(AF_INET, SOCK_DGRAM, 0);
 	while (true)
 	{
 		cap.read(img);
@@ -197,6 +218,12 @@ int main()
 				cv::putText(img, std::to_string(pos_out.y), cv::Point(10,70), cv::FONT_HERSHEY_SIMPLEX, 0.6,cv::Scalar(100, 255, 0), 1);
 				cv::putText(img, std::to_string(pos_out.z), cv::Point(10,90), cv::FONT_HERSHEY_SIMPLEX, 0.6,cv::Scalar(100, 255, 0), 1);
 
+				if (online)
+				{
+					pos_out = pos_out.MagnitudeSquared() < 90000 ? pos_out : Vector3(0, 0, 0);
+					std::string s = std::to_string(pos_out.x) + " " + std::to_string(pos_out.y) + " " + std::to_string(pos_out.z) + " ";
+					int sendOk = sendto(out, s.c_str(), s.size() + 1, 0, (sockaddr*)&server, sizeof(server));
+				}
 			}
 			cv::imshow("input", img);
 			cv::imshow("output", threshold_img);
