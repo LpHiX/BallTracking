@@ -50,6 +50,10 @@ struct Vector3
 	{
 		return x * x + y * y + z * z;
 	}
+	Vector3 RotateX(float radians) const
+	{
+		return Vector3(x, y * cosf(radians) - z * sinf(radians), y * sinf(radians) + z * cosf(radians));
+	}
 };
 
 std::ostream& operator<<(std::ostream& stream, const Vector3& other)
@@ -79,10 +83,10 @@ cv::Rect cal_z(0, 120, 150, 60);
 cv::Rect cal_0(150, 60, 150, 60);
 cv::Rect cal_debug(150, 0, 150, 60);
 
-float distance;
-Vector3 pos_raw, pos_centered, pos_out;
-Vector3 pos_offset(289.929, 405.357, 993.672), pos_scale(0.594985, -0.614035, -0.333545);
-Vector3 rawpos_0(289.929, 405.357, 993.672), rawpos_x(458, 403.5, 886.477), rawpos_y(307.342, 242.5, 1034.03), rawpos_z(273.734, 404.633, 693.862);
+float distance, x_angle;
+Vector3 pos_raw, pos_centered, pos_scaled, pos_out;
+Vector3 pos_offset(298.338, 274.38, 1153.29), pos_scale(0.697858, -0.725195, -0.380886);
+Vector3 rawpos_0(298.338, 274.38, 1153.29), rawpos_x(441.633, 277.5, 1285.44), rawpos_y(308.845, 136.486, 1007.07), rawpos_z(284.182, 351, 890.746);
 
 bool online = true;
 
@@ -212,7 +216,10 @@ int main()
 				float distance = 10000 / sphere_radius;
 				pos_raw = Vector3(sphere_center.x, sphere_center.y, distance);
 				pos_centered = pos_raw - pos_offset;
-				pos_out = pos_centered * pos_scale;
+				pos_scaled = pos_centered * pos_scale;
+				Vector3 scaled_z = (rawpos_z - pos_offset) * pos_scale;
+				x_angle = atan2f(scaled_z.y, scaled_z.z);
+				pos_out = pos_scaled.RotateX(x_angle);
 
 				cv::putText(img, std::to_string(pos_out.x), cv::Point(10,50), cv::FONT_HERSHEY_SIMPLEX, 0.6,cv::Scalar(100, 255, 0), 1);
 				cv::putText(img, std::to_string(pos_out.y), cv::Point(10,70), cv::FONT_HERSHEY_SIMPLEX, 0.6,cv::Scalar(100, 255, 0), 1);
